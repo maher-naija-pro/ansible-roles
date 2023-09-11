@@ -1,0 +1,24 @@
+---
+- hosts: "*-PPRD-*smtp*" 
+  become: yes
+  become_user: root
+  vars_files: ../vars/smtp/main_ppd.yml
+  roles:
+    - role: ../roles/base      
+    - role: ../roles/docker
+    - role: ../roles/dns_client
+    - role: ../roles/smtp
+    - role: ../roles/rsyslog_client
+    - role: ../roles/zabbix-agent
+
+- hosts: "*-PRD-*smtp*"
+  become: yes
+  become_user: root
+  vars_files: ../vars/smtp/main_prd.yml
+  roles:
+    - role: ../roles/base
+    - role: ../roles/docker
+    - role: ../roles/dns_client
+    - role: ../roles/smtp      
+    - role: ../roles/rsyslog_client
+    - role: ../roles/zabbix-agent

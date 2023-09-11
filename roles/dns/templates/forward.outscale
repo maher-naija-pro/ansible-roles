@@ -1,0 +1,96 @@
+{% set platform = ansible_hostname.split('-')[2]  %}
+{% if "PPRD" in  platform %}
+{% set ptf = 'pprd'  %}
+{% else %}
+{% set ptf = 'prd'  %}
+{% endif %}
+$TTL 86400
+@   IN  SOA      {% for host in VPC_IT_2_dns  -%} {{ hostvars[host].ansible_hostname }}.outscale.internal.  {%  endfor %}(
+        2020032601  ;Serial
+        3600        ;Refresh
+        1800        ;Retry
+        604800      ;Expire
+        86400       ;Minimum TTL
+)
+{% for host in VPC_IT_2_dns %}
+@                           IN  NS          {{ hostvars[host].ansible_hostname }}.outscale.internal.
+{% endfor %}
+LDAPS                		IN	A	192.168.6.20
+IT-2-PPRD-DNS-2             IN      A        10.28.1.136
+IT-2-PPRD-DNS-1             IN      A        10.28.1.176
+crqal               		IN	CNAME 	icu.in-west-1.outscale.com.
+crdv	                	IN	CNAME	icu.dv-west-1.outscale.com.
+crdk                		IN	CNAME	icu.dk-west-1.outscale.com.
+dev-ldap-1               	IN	A	172.19.97.235
+dashboard.cve-search            CNAME   cve-search
+eu-outsec-waproxy-1     	IN	A	192.168.6.4
+eu-outsec-guest-front-1 	IN	A	192.168.6.5
+eu-outsec-portal-front-1	IN	A	192.168.6.6
+captiveportal           	IN	A	192.168.6.6
+eu-outsec-webadm-1      	IN	A	192.168.6.12
+eu-outsec-ldap-1	        IN	A	192.168.6.20
+eu-outsec-mysql-1	        IN	A	192.168.6.21
+eu-outsec-radius-1      	IN	A	192.168.6.22
+eu-outsec-guest-1       	IN	A	192.168.6.28
+eu-outsec-portal-1	        IN	A	192.168.6.29
+ppd2-wiki           		IN	A	171.33.76.199
+docs-test           		IN	A	171.33.94.184
+docs-ppd            		IN	A	171.33.96.188
+jamf	            		IN	A	171.33.116.89
+sc-fw-1	            		IN	A	192.168.15.254
+sc-e2z6-nas-1       		IN	A	192.168.13.239
+nas-1		            	IN	CNAME	sc-e2z6-nas-1
+datalab         			IN	A	171.33.79.209
+datalake	            	IN	A	171.33.86.191
+ci-bastion-1	         	IN	A	172.19.99.228
+planning            		IN	CNAME	prd-soplanning-1
+cidev-jenkins	        	IN	A	172.19.99.228
+ci-t3-jenkins		        IN	A	172.19.94.200
+sentinel            		IN	CNAME	prd-sentinel-1
+prd-secu-huginn-1       	IN	A	171.33.115.145
+password            		IN	A	192.168.6.86
+docs-dev	            	IN	A	171.33.71.204
+docs-in		            	IN	A	171.33.71.204
+ocs		                 	IN	CNAME	prd-ocs-1
+ppd-jira-2          		IN	A	171.33.84.98
+prd-nas-market-1            IN  A       192.168.14.43
+logs-beta	             	IN	A	192.168.18.12
+logs		            	IN	A	192.168.18.12
+ppd-portal-1	         	IN	A	192.168.5.33
+billing-qa-1                IN  A       171.33.107.48
+billing-dv-1                IN  A       171.33.94.109
+billing-qa-2                IN  A       171.33.103.174
+ingress.data2	        	IN	CNAME	euw2-data2-ingress-lb-829930723.eu-west-2.lbu.outscale.com.
+s3a.data2	            	IN	CNAME	euw2-data2-mioa-lb-241852666.eu-west-2.lbu.outscale.com.
+auth.data2	            	IN	CNAME	ingress.data2.outscale.internal.
+registry.data2	         	IN	CNAME	ingress.data2.outscale.internal.
+notebooks.data2	         	IN	CNAME	ingress.data2.outscale.internal.
+demenagement	        	IN	A	171.33.100.147
+devpi.data-ci	        	IN	CNAME	data1-devpi-ci-lbu-153102136.eu-west-2.lbu.outscale.com.
+registry-cn-global	        IN	A	172.19.97.184
+ingest-kafka.data2	        IN	CNAME	euw2-data2-ingest-kafka-431983506.eu-west-2.lbu.outscale.com.
+ingest-kafka-0.data2	    IN	CNAME	euw2-data2-ingest-kafka-0-613130844.eu-west-2.lbu.outscale.com.
+ingest-kafka-1.data2	    IN	CNAME	euw2-data2-ingest-kafka-1-360745971.eu-west-2.lbu.outscale.com.
+ingest-kafka-2.data2	    IN	CNAME	euw2-data2-ingest-kafka-2-745835992.eu-west-2.lbu.outscale.com.
+gitlab                      IN  A 192.168.4.11
+jira                        IN  A 192.168.4.12
+harbor                      IN  A 192.168.4.71
+wiki                        IN  A 192.168.4.13
+wiki-ext                    IN  A 10.28.1.11
+jira-ext                    IN  A 10.28.1.11
+gitlab-ext                  IN  A 10.28.1.11
+harbor-ext                  IN  A 10.28.1.11
+it2-cloud-zabbix-proxy-VM-1  IN  A   172.24.10.230
+it2-cloud-zabbix-proxy-VM-2  IN  A   172.24.10.231
+it2-cloud-zabbix-proxy-VM-4  IN  A   172.24.10.232
+euw2-1-kafka-01		IN  A  109.232.237.211
+euw2-1-kafka-02		IN  A  109.232.237.212
+euw2-1-kafka-03		IN  A  109.232.237.213
+superset.data2  	CNAME    ingress.data2
+{% if "PPRD" in  platform %}
+harbor-pprd         CNAME    it-2-pprd-harbor
+{% endif %}
+{% for host in VPC_IT_2_servers %}
+{{ hostvars[host].ansible_hostname }}                  IN  A {{ hostvars[host].ansible_default_ipv4.address }}
+{% endfor %}
+

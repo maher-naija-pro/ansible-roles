@@ -1,0 +1,10 @@
+---
+jira_certificate: "ppd-jira-ext.cer"
+jira_key: "ppd-jira-ext.key"
+wiki_certificate: "ppd-wiki-ext.cer"
+wiki_key: "ppd-wiki-ext.key"
+gitlab_certificate: "ppd-gitlab-ext.cer"
+gitlab_key: "ppd-gitlab-ext.key"
+harbor_certificate: "ppd-harbor-ext.cer"
+harbor_key: "ppd-harbor-ext.key"
+

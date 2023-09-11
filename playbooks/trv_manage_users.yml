@@ -1,0 +1,14 @@
+---
+- hosts:  "*-PPRD-*"
+  become: yes
+  become_user: root
+  vars_files: ../vars/users/main_ppd.yml
+  roles:
+    - role: ../roles/manage_users
+
+- hosts:  "*-PRD-*"
+  become: yes
+  become_user: root
+  vars_files: ../vars/users/main_prd.yml
+  roles:
+    - role: ../roles/manage_users

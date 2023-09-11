@@ -1,0 +1,24 @@
+---
+- hosts: "*-PPRD-*tools*"
+  become: yes
+  become_user: root
+  vars_files: ../vars/osc_omi_autosnap/main_ppd.yml
+  roles:
+    - role: ../roles/base
+    - role: ../roles/docker
+    - role: ../roles/dns_client
+    - role: ../roles/osc_omi_autosnap
+    - role: ../roles/rsyslog_client
+    - role: ../roles/zabbix-agent
+
+- hosts: "*-PRD-*tools*"
+  become: yes
+  become_user: root
+  vars_files: ../vars/osc_omi_autosnap/main_prd.yml
+  roles:
+    - role: ../roles/base
+    - role: ../roles/docker
+    - role: ../roles/dns_client
+    - role: ../roles/osc_omi_autosnap
+    - role: ../roles/rsyslog_client
+    - role: ../roles/zabbix-agent

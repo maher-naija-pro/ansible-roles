@@ -1,0 +1,18 @@
+;#####################################################
+;###     Configuration deployed with Ansible       ###
+;###        !!!! DO NOT MODIFY !!!!                ###
+;#####################################################
+$TTL 86400
+@   IN  SOA     {% for host in VPC_IT_2_dns  -%} {{ hostvars[host].ansible_hostname }}.outscale.internal.  {%  endfor %}(
+        2020040202  ;Serial
+        3600        ;Refresh
+        1800        ;Retry
+        604800      ;Expire
+        86400       ;Minimum TTL
+)
+{% for host in VPC_IT_2_dns %}
+@       IN  NS         {{ hostvars[host].ansible_hostname }}.outscale.internal.
+{% endfor %}
+@       IN  PTR         outscale.internal.
+197.13.168.192.in-addr.arpa.    PTR     sc-e2z3-ap-1.
+

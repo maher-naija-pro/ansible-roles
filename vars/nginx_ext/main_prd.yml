@@ -1,0 +1,10 @@
+---
+jira_certificate: "prd-jira-ext.cer"
+jira_key: "prd-jira-ext.key"
+wiki_certificate: "prd-wiki-ext.cer"
+wiki_key: "prd-wiki-ext.key"
+gitlab_certificate: "prd-gitlab-ext.cer"
+gitlab_key: "prd-gitlab-ext.key"
+harbor_certificate: "prd-harbor-ext.cer"
+harbor_key: "prd-harbor-ext.key"
+

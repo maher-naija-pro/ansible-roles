@@ -1,0 +1,9 @@
+# ---
+# handlers file for dns
+- name: start docker dns
+  command: docker-compose up -d
+  args:
+    chdir: /opt/bind
+
+- name: reload dns server
+  command: docker exec dns rndc reload

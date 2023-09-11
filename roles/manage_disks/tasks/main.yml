@@ -1,0 +1,94 @@
+- name: Collect only facts about hardware
+  setup:
+    gather_subset:
+      - hardware
+
+- name: Register disks
+  set_fact:  disks={{ hostvars[inventory_hostname].ansible_devices.keys() | map('regex_search','sd[a-z]') | select('string') | list  }}
+
+- name: Register lvm disks
+  set_fact: lvm_disks={{ disks | map('regex_replace', '(.+)', '/dev/\\g<1>1') | list | join(',') }}
+
+- name: Create an xfs filesystem on /dev/sda
+  filesystem:
+    fstype: xfs
+    dev: /dev/sda
+  when: "disks | length == 1"
+
+- name: Mount /data on /dev/sda
+  mount:
+    path: /data
+    src: /dev/sda
+    fstype: xfs
+    state: mounted
+  when: "disks | length == 1"
+
+- name: Install lvm2 dependency
+  package:
+    name: lvm2
+    state: present
+  when: (( disks | length > 1 ) and ( (lvm | default ( "yes" ) == "yes" ) or ( raid| default ( "no" ) == "yes" ) ))
+
+- name: Create new primary partitions for LVM
+  parted:
+    device: "/dev/{{ item  }}"
+    number: 1
+    flags: [ lvm ]
+    state: present
+  when: (( disks | length > 1 ) and ( (lvm | default ( "yes" ) == "yes" ) or ( raid| default ( "no" ) == "yes" ) ))
+  with_items: "{{ disks }}"
+
+- name: Check if partitions are created ( create them if not)
+  parted:
+    device: "/dev/{{ item  }}"
+    number: 1
+    flags: [ lvm ]
+    state: present
+  when: (( disks | length > 1 ) and ( (lvm | default ( "yes" ) == "yes" ) or ( raid| default ( "no" ) == "yes" ) ))
+  with_items: "{{ disks }}"
+
+- name: Create or resize a volume group on top of {{ lvm_disks }}
+  lvg:
+    vg: vg_lvm
+    pvs: "{{ lvm_disks }}"
+  when: (( disks | length > 1 ) and ( (lvm | default ( "yes" ) == "yes" ) or ( raid| default ( "no" ) == "yes" ) ))
+
+- name: Create logical volume lvm
+  lvol:
+    vg: vg_lvm
+    lv:  lv_data
+    size: +100%FREE
+    resizefs: yes
+    force: yes
+  when: (( disks | length > 1 ) and ((lvm | default ( "yes" ) == "yes") and (raid| default ( "no" ) == "no" ) ))
+
+- name: Create raid0 logical volume
+  lvol:
+    vg: vg_lvm
+    lv:  lv_data
+    size: +100%FREE
+    resizefs: yes
+    force: yes
+    opts: --type raid0 --stripes {{ disks | length  }}
+  when: (( disks | length > 1 ) and (raid | default ( "no" ) == "yes"))
+
+- name: Create directory data if does not exist
+  file:
+    path: /data
+    state: directory
+    mode: '0755'
+  when: (( disks | length > 1 ) and ( (lvm | default ( "yes" ) == "yes" ) or ( raid| default ( "no" ) == "yes" ) ))
+
+- name: Format the xfs filesystem
+  filesystem:
+    fstype: xfs
+    dev: /dev/vg_lvm/lv_data
+  when: (( disks | length > 1 ) and ( (lvm | default ( "yes" ) == "yes" ) or ( raid| default ( "no" ) == "yes" ) ))
+
+- name: Mount the lv on /data
+  mount:
+    path: /data
+    src: /dev/vg_lvm/lv_data
+    fstype: xfs
+    state: mounted
+  when: (( disks | length > 1 ) and ( (lvm | default ( "yes" ) == "yes" ) or ( raid| default ( "no" ) == "yes" ) ))

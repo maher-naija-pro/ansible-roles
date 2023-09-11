@@ -1,0 +1,29 @@
+version: '3.7'
+services:
+  zabbix-agent:
+    image: {{ zabbix_agent_docker_image_name }}:{{ zabbix_agent_docker_image_tag}}
+    privileged: true
+    user: root
+    ports:
+      - "10050:10050"
+    container_name: zabbix-agent
+    volumes:
+      - "/opt/zabbix-agent/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d"
+      - "/opt/zabbix-agent/modules:/var/lib/zabbix/modules"
+      - "/opt/zabbix-agent/enc:/var/lib/zabbix/enc"
+      - "/proc:/proc"
+      - "/sys:/sys:ro"
+      - "/dev:/dev:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+    networks:
+      - zabbix-agent_network
+    restart: always
+    environment:
+    {% for conf in zabbix_agent_conf %}
+      - {{ conf }}
+    {% endfor %}
+
+networks:
+  zabbix-agent_network:
+    name: zabbix-agent

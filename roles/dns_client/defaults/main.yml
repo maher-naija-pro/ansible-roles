@@ -1,0 +1,4 @@
+---
+# defaults file for dns_client
+dns_servers: "{{ groups.all|select('match', '.*dns.*') |list }}"
+

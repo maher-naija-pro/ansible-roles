@@ -1,0 +1,20 @@
+version: '3.7'
+services:
+  rsyslog-relay:
+    image: rsyslog:it-client-rocky
+    privileged: true
+    user: root
+    ports:
+      - 20514:20514
+      - 20515:20515
+    container_name: rsyslog
+    volumes:
+      - /tmp/test:/tmp/test
+      - /dev:/dev
+      - /opt/rsyslog_client/rsyslog.conf:/etc/rsyslog.conf
+    restart: always
+    networks:
+      - rsyslog_network
+networks:
+  rsyslog_network:
+    name: rsyslog

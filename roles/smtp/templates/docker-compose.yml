@@ -1,0 +1,18 @@
+version: '3.7'
+services:
+  smtp:
+    image: {{ smtp_docker_image_name }}:{{ smtp_docker_image_tag}}
+    privileged: true
+    user: root
+    ports:
+      - 587:587
+    container_name: smtp
+    volumes:
+      - "/data/mailqueue:/queue"
+      - "/data/overrides/postfix:/overrides:ro"
+    networks:
+      - smtp_network
+    restart: always
+networks:
+  smtp_network:
+    name: smtp

@@ -1,0 +1,32 @@
+- name: Add Docker CE repo
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+
+- name: Install docker
+  yum:
+    name: docker-ce
+    state: present
+
+- name: Start service docker, if not started
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Download docker compose
+  get_url:
+    url: https://github.com/docker/compose/releases/download/1.29.1/docker-compose-Linux-x86_64
+    dest: /usr/bin/docker-compose
+    mode: '755'
+
+- name: Install python docker
+  pip:
+    name: docker
+
+- name: copy docker daemon config
+  template:
+    src: daemon.json
+    dest: "/etc/docker/daemon.json"
+    mode: 0640
+  notify: restart docker service

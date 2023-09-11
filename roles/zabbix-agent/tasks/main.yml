@@ -1,0 +1,55 @@
+- name: Create a network
+  docker_network:
+    name: zabbix-agent
+
+- name: Create directory zabbix-agent
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /opt/zabbix-agent/modules
+    - /opt/zabbix-agent/zabbix_agentd.d
+    - /opt/zabbix-agent/enc
+
+- name: copy docker compose
+  template:
+    src: docker-compose.yml
+    dest: "/opt/zabbix-agent"
+    owner: outscale
+    group: outscale
+    mode: 0640
+    backup: yes
+  notify: start docker zabbix-agent
+
+- name: copy zabbix-agent config files
+  template:
+    src: "{{item}}"
+    dest: "/opt/zabbix-agent/zabbix_agentd.d"
+    owner: outscale
+    group: outscale
+    mode: 0640
+    backup: yes
+  with_fileglob:
+    - "../templates/zabbix_agentd.d/*"
+  notify: reload zabbix-agent
+
+- name: Check container stauts
+  docker_container_info:
+    name: zabbix-agent
+  register: result
+
+- name: Start the container if it does not exist or stopped
+  debug:
+    msg: "The container {{ 'exists' if result.exists else 'does not exist' }}"
+  notify: start docker zabbix-agent
+  changed_when: true
+  when: not result.exists
+
+- name: Start the container if it is stopped
+  debug:
+    msg: "The container status is {{ result.container['State']['Status'] }}"
+  when: ((result.exists) and (result.container['State']['Status'] != "running"))
+  changed_when: true
+  notify: start docker zabbix-agent
+
+

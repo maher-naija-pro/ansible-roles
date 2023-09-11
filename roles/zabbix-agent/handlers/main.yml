@@ -1,0 +1,9 @@
+---
+# handlers file for zabbix-agent
+- name: start docker zabbix-agent
+  command: docker-compose up -d
+  args:
+    chdir: /opt/zabbix-agent
+
+- name: reload zabbix-agent
+  command: docker exec zabbix-agent pkill -SIGHUP zabbix_agentd

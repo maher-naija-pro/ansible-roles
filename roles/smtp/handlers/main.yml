@@ -1,0 +1,6 @@
+---
+# handlers file for smtp
+- name: start docker smtp
+  command: docker-compose up -d
+  args:
+    chdir: /opt/smtp

@@ -1,0 +1,36 @@
+---
+- name: Install a list of packages 
+  yum:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+
+- name: Install gandi python package
+  pip:
+    name: certbot-plugin-gandi
+
+- name: Creates directory nginx/conf.d
+  file:
+    path: /etc/nginx/conf.d
+    state: directory
+
+- name: Add managed vhost config files.
+  template:
+    src: "gandi.ini"
+    dest: "/etc/nginx/conf.d/gandi.ini"
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Run command certbot
+  command: certbot certonly --agree-tos --authenticator dns-gandi --dns-gandi-credentials /etc/nginx/conf.d/gandi.ini --email letsencrypt@outscale.com -d wazuh.outscale.net -n
+
+- cron:
+    name: "check dirs"
+    minute: "0"
+    hour: "3"
+    day: "1"
+    month: "*"
+    weekday: "*"
+    job: "certbot renew -n --agree-tos --renew-hook 'systemctl reload nginx'"

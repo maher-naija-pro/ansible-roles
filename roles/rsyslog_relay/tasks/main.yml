@@ -1,0 +1,114 @@
+- name: Create a network
+  docker_network:
+    name: rsyslog
+
+- name: Creates directory rsyslog_relay
+  file:
+    path: /opt/rsyslog_relay
+    state: directory
+
+- name: Creates directory rsyslog.conf.d
+  file:
+    path: /opt/rsyslog_relay/rsyslog.conf.d
+    state: directory
+
+- name: Creates directory cert
+  file:
+    path: /opt/rsyslog_relay/certs
+    state: directory    
+
+- name: Creates data directory 
+  file:
+    path: /data
+    state: directory
+
+- name: Ensure kafka hosts are in /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    regexp: "{{ item }}"
+    line: "{{ item }}"
+  with_items:
+    - "109.232.237.211          euw2-1-kafka-01 euw2-1-kafka-01.admin euw2-1-kafka-01.euw2"
+    - "109.232.237.212          euw2-1-kafka-02 euw2-1-kafka-02.admin euw2-1-kafka-02.euw2"
+    - "109.232.237.213          euw2-1-kafka-03 euw2-1-kafka-03.admin euw2-1-kafka-03.euw2"
+
+- name: Copying certificates to node
+  copy:
+    src: "{{ item }}"
+    dest: "/opt/rsyslog_relay/certs/"
+    owner: root
+    group: root
+    mode: 0440
+  with_items:
+    - "templates/certs/{{ ansible_hostname.split('-')[2] }}/{{ansible_hostname}}.key"
+    - "templates/certs/{{ ansible_hostname.split('-')[2] }}/{{ansible_hostname}}.crt"
+    - "templates/certs/logmanagement.crt"
+
+- name: copy docker file
+  template:
+    src: Dockerfile
+    dest: "/opt/rsyslog_relay/"
+    owner: outscale
+    group: outscale
+    mode: 0640
+    backup: yes
+  register: dockerfile
+
+- name: copy docker compose
+  template: src=docker-compose.yml
+            dest="/opt/rsyslog_relay"
+            owner=outscale
+            group=outscale
+            mode=0640
+            backup=yes
+  notify: start docker rsyslog
+
+- name: copy rsyslog conf
+  template: src=rsyslog.conf 
+            dest="/opt/rsyslog_relay"
+            owner=outscale
+            group=outscale
+            mode=0640
+            backup=yes
+  notify: reload rsyslog server
+
+- name: copy rsyslog conf
+  template: src="{{item}}"
+            dest="/opt/rsyslog_relay/rsyslog.conf.d"
+            owner=outscale
+            group=outscale
+            mode=0640
+            backup=yes
+  with_fileglob:
+     - "../templates/rsyslog.conf.d/*"
+  notify: reload rsyslog server
+
+- name: build container image
+  docker_image:
+    name: "rsyslog"
+    build:
+      path: /opt/rsyslog_relay/
+    source: build
+    tag: "it-server-centos7"
+    state: present
+    force_source: "{{ 'yes' if (dockerfile.changed)  else 'no' }}"
+  notify: start docker rsyslog
+
+- name: Check container stauts
+  docker_container_info:
+    name: rsyslog
+  register: result
+
+- name: Start the container if it does not exist or stopped
+  debug:
+    msg: "The container {{ 'exists' if result.exists else 'does not exist' }}"
+  notify: start docker rsyslog
+  changed_when: true
+  when: not result.exists
+
+- name: Start the container if it is stopped
+  debug:
+    msg: "The container status is {{ result.container['State']['Status'] }}"
+  when: ((result.exists) and (result.container['State']['Status'] != "running"))
+  changed_when: true
+  notify: start docker rsyslog

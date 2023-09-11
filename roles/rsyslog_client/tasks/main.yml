@@ -1,0 +1,94 @@
+- name: Gather facts from all servers
+  setup:
+    gather_subset: network
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['all'] }}"
+
+- name: Create a network
+  docker_network:
+    name: rsyslog
+    
+- name: Creates directory rsyslog_client
+  file:
+    path: /opt/rsyslog_client
+    state: directory
+
+- name: Creates directory rsyslog.conf.d
+  file:
+    path: /opt/rsyslog_client/rsyslog.conf.d
+    state: directory
+
+
+- name: Creates data directory 
+  file:
+    path: /data
+    state: directory
+
+- name: copy docker file
+  template:
+    src: Dockerfile
+    dest: "/opt/rsyslog_client/"
+    owner: outscale
+    group: outscale
+    mode: 0640
+    backup: yes
+  register: dockerfile
+
+- name: copy docker compose
+  template: src=docker-compose.yml
+            dest="/opt/rsyslog_client"
+            owner=outscale
+            group=outscale
+            mode=0640
+  notify: start docker rsyslog
+
+- name: copy rsyslog conf
+  template: src="rsyslog.conf"
+            dest="/opt/rsyslog_client/rsyslog.conf"
+            owner=outscale
+            group=outscale
+            mode=0640
+            backup=yes
+  notify: reload rsyslog server
+
+- name: copy rsyslog conf
+  template: src="{{item}}"
+            dest="/opt/rsyslog_client/rsyslog.conf.d"
+            owner=outscale
+            group=outscale
+            mode=0640
+            backup=yes
+  with_fileglob:
+     - "../templates/rsyslog.conf.d/*"
+  notify: reload rsyslog server
+
+- name: build container image
+  docker_image:
+    name: "rsyslog"
+    build:
+      path: /opt/rsyslog_client/
+    source: build
+    tag: "it-client-rocky"
+    state: present
+    force_source: "{{ 'yes' if (dockerfile.changed)  else 'no' }}"
+  notify: start docker rsyslog
+
+- name: Check container stauts
+  docker_container_info:
+    name: rsyslog
+  register: result
+
+- name: Start the container if it does not exist or stopped
+  debug:
+    msg: "The container {{ 'exists' if result.exists else 'does not exist' }}"
+  notify: start docker rsyslog
+  changed_when: true
+  when: not result.exists
+
+- name: Start the container if it is stopped
+  debug:
+    msg: "The container status is {{ result.container['State']['Status'] }}"
+  when: ((result.exists) and (result.container['State']['Status'] != "running"))
+  changed_when: true
+  notify: start docker rsyslog

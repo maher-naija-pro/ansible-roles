@@ -1,0 +1,9 @@
+---
+# handlers file for nginx
+- name: start docker rsyslog
+  command: docker-compose up -d
+  args:
+    chdir: /opt/rsyslog_client
+
+- name: reload rsyslog server
+  command: docker restart rsyslog 

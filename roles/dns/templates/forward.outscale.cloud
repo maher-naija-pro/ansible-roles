@@ -1,0 +1,54 @@
+;#####################################################
+;###     Configuration deployed with Ansible       ###
+;###        !!!! DO NOT MODIFY !!!!                ###
+;#####################################################
+$TTL 86400
+@   IN  SOA     {% for host in VPC_IT_2_dns  -%} {{ hostvars[host].ansible_hostname }}.outscale.internal.  {%  endfor %} root.outscale.internal. (
+        2011071001  ;Serial
+        3600        ;Refresh
+        1800        ;Retry
+        604800      ;Expire
+        86400       ;Minimum TTL
+)
+{% for host in VPC_IT_2_dns %}
+@                           IN  NS          {{ hostvars[host].ansible_hostname }}.outscale.internal.
+{% endfor %}
+ntp1                 	IN	A	172.24.0.1
+ntp2                  	IN	A	172.24.0.2
+ntp3                   	IN	A	172.24.0.3
+ntp4                  	IN	A	172.24.0.4
+
+smtp1                  	IN	A	172.24.3.16
+sftp1                  	IN	A	172.24.3.3
+
+par1-cucm-1	            IN	A	172.24.0.65
+par4-cucm-1	            IN	A	172.25.0.65
+par1-cuc-1             	IN	A	172.24.0.66
+par4-cuc-1	            IN	A	172.25.0.66
+par1-cup-1	            IN	A	172.24.0.67
+par4-cup-1          	IN	A	172.25.0.67
+par1-expressedge-1	    IN	A	172.24.0.68
+par4-expressedge-1      IN  A       172.25.0.68
+par1-expresscontrol-1	IN	A	172.24.0.69
+par4-expresscontrol-1	IN	A	172.25.0.69
+par1-conductor-1	    IN	A	172.24.0.70
+par4-conductor-1	    IN	A	172.25.0.70
+par1-telepresence-1	    IN	A	172.24.0.73
+par1-uccx-1	            IN	A	172.24.0.74
+par1-cucmesx-1       	IN	A	172.24.0.25
+par1-cucmesx-2	        IN	A	172.24.0.24
+par4-cucmesx-1          IN	A	172.25.0.25
+cucm            		IN	A	172.24.0.65
+cucm             		IN	A	172.25.0.65
+cuc	                	IN	A	172.24.0.66
+cuc	                	IN	A	172.25.0.66
+cup	                 	IN	A	172.24.0.67
+cup             		IN	A	172.25.0.67
+expressedge	            IN	A	172.24.0.68
+expressedge	            IN	A	172.25.0.68
+expresscontrol	        IN	A	172.24.0.69
+expresscontrol        	IN	A	172.25.0.69
+conductor	IN	A	172.24.0.70
+conductor	IN	A	172.25.0.70
+_cisco-uds._tcp		IN	SRV	10 10 8443 cucm.outscale.cloud.
+

@@ -1,0 +1,121 @@
+- name: Gather facts from all servers
+  setup:
+    gather_subset: network
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['all'] }}"
+
+- name: Create a network
+  docker_network:
+    name: dns
+    
+- name: Creates directory docker compose
+  file:
+    path: /opt/bind/lib 
+    state: directory
+
+- name: Creates directory 
+  file:
+    path: /opt/bind/etc
+    state: directory   
+
+- name: Creates directory
+  file:
+    path: /opt/bind/var/named
+    state: directory    
+    mode: '0657'
+
+- name: Creates directory 
+  file:
+    path: /opt/bind/cache
+    state: directory    
+
+- name: Creates data directory 
+  file:
+    path: /data
+    state: directory
+
+- name: copy docker file
+  template:
+    src: Dockerfile
+    dest: "/opt/bind"
+    owner: outscale
+    group: outscale
+    mode: 0640
+    backup: yes
+  register: dockerfile
+
+- name: copy named.conf
+  template: src=named.conf
+            dest="/opt/bind/etc/named.conf"
+            owner=outscale
+            group=outscale
+            mode=0655
+            backup=yes
+  notify: start docker dns
+
+- name: copy forward.outscale.cloud
+  template: src=forward.outscale.cloud
+            dest="/opt/bind/var/named/forward.outscale.cloud"
+            owner=outscale
+            group=outscale
+            mode=0655            
+            backup=yes
+  notify: reload dns server
+
+- name: copy forward.outscale
+  template: src=forward.outscale
+            dest="/opt/bind/var/named/forward.outscale"
+            owner=outscale
+            group=outscale
+            mode=0655            
+            backup=yes
+  notify: reload dns server
+
+- name: copy reverse.outscale
+  template: src=reverse.outscale
+            dest="/opt/bind/var/named/reverse.outscale"
+            owner=outscale
+            group=outscale
+            mode=0655
+            backup=yes
+  notify: reload dns server
+
+- name: build container image
+  docker_image:
+    name: "{{ dns_docker_image_name  }}"
+    build:
+      path: /opt/bind
+    source: build
+    tag: "{{ dns_docker_image_tag  }}"
+    state: present
+    force_source: "{{ 'yes' if dockerfile.changed else 'no' }}"
+  notify: start docker dns
+
+- name: copy docker compose
+  template: src=docker-compose.yml
+            dest="/opt/bind"
+            owner=outscale
+            group=outscale
+            mode=0655
+            backup=yes
+  notify: start docker dns
+
+- name: Check container stauts
+  docker_container_info:
+    name: dns
+  register: result
+
+- name: Start the container if it does not exist or stopped
+  debug:
+    msg: "The container {{ 'exists' if result.exists else 'does not exist' }}"
+  notify: start docker dns 
+  changed_when: true
+  when: not result.exists
+
+- name: Start the container if it is stopped
+  debug:
+    msg: "The container status is {{ result.container['State']['Status'] }}"
+  when: ((result.exists) and (result.container['State']['Status'] != "running"))
+  changed_when: true
+  notify: start docker dns

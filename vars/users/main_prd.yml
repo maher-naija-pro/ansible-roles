@@ -1,0 +1,5 @@
+---
+users:
+  - username: ""
+    sshkey: ""
+    admin_prd: "yes"

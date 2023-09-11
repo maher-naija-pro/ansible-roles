@@ -1,0 +1,28 @@
+version: '3.7'
+services:
+  bind:
+    image: {{ dns_docker_image_name }}:{{ dns_docker_image_tag}}
+    ports:
+    - "53:53/udp"
+    - "53:53/tcp"
+    - "10000:10000/tcp"
+    container_name: dns
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 2
+        window: 5s
+    volumes:
+      - /data:/keys
+      - /data/log/:/var/log
+      - /opt/bind/var/named:/var/named
+      - /opt/bind/etc:/etc/bind/ 
+      - /opt/bind/lib:/var/lib/bind
+      - /opt/dns/cache:/var/cache/bind  
+    restart: always
+    networks:
+      - dns_network
+networks:
+  dns_network:
+    name: dns

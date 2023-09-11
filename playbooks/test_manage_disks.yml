@@ -1,0 +1,14 @@
+---
+- hosts:  "*-PPRD-*"
+  become: yes
+  become_user: root
+  gather_facts: false
+  roles:
+    - role: ../roles/manage_disks
+
+- hosts:  "*-PRD-*"
+  become: yes
+  become_user: root
+  gather_facts: false
+  roles:
+    - role: ../roles/manage_disks

@@ -1,0 +1,83 @@
+- name: Create a network
+  docker_network:
+    name: nginx
+
+- name: Creates directory docker compose
+  file:
+    path: /opt/nginx/
+    state: directory
+    mode: '0755'
+
+- name: Pull the latest official nginx docker image
+  docker_image:
+    name: "nginx:1.21.1"
+
+- name: Creates conf directory
+  file:
+    path: /opt/nginx/logs
+    state: directory    
+
+- name: Creates conf directory 
+  file:
+    path: /opt/nginx/conf.d
+    state: directory
+
+- name: Creates ssl directory
+  file:
+    path: /opt/nginx/ssl
+    state: directory    
+
+- name: copy docker compose
+  template: src=docker-compose.yml
+            dest="/opt/nginx"
+            owner=outscale
+            group=outscale
+            mode=0640
+            backup=yes
+  notify: start docker nginx          
+
+- name: copy vhosts
+  template: src="{{item}}" 
+            dest="/opt/nginx/conf.d/"
+            owner=outscale
+            group=outscale
+            mode=0655   
+            backup=yes
+  with_fileglob:
+     - "../templates/conf.d/*"
+  notify: reload nginx server
+
+- name: copy certificates
+  template: src="{{item}}"
+            dest="/opt/nginx/ssl/"
+            owner=outscale
+            group=outscale
+            mode=0655
+            backup=yes
+  with_fileglob:
+     - "../templates/ssl/*"
+  notify: reload nginx server
+
+- name: Check container status
+  docker_container_info:
+    name: nginx
+  register: result
+
+- name: Start the container if it does not exist or stopped
+  debug:
+    msg: "The container {{ 'exists' if result.exists else 'does not exist' }}"
+  notify: start docker nginx
+  changed_when: true
+  when: not result.exists
+
+- name: Start the container if it is stopped
+  debug:
+    msg: "The container status is {{ result.container['State']['Status'] }}"
+  when: ((result.exists) and (result.container['State']['Status'] != "running"))
+  changed_when: true
+  notify: start docker nginx
+
+
+
+
+

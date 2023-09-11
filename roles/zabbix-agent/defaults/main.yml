@@ -1,0 +1,10 @@
+---
+# defaults file for zabbix-agent
+zabbix_agent_docker_image_name: zabbix/zabbix-agent
+zabbix_agent_docker_image_tag: alpine-4.0.32
+zabbix_agent_conf:
+   - ZBX_SERVER_HOST= it2-cloud-zabbix-proxy-VM-1.outscale.internal,it2-cloud-zabbix-proxy-VM-2.outscale.internal,it2-cloud-zabbix-proxy-VM-4.outscale.internal
+   - ZBX_HOSTNAME= {{ ansible_hostname }}
+   - ZBX_TIMEOUT= 30
+
+

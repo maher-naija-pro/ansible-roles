@@ -1,0 +1,3 @@
+---
+postfix_smtpd_tls_key_file: prd-smtp.key
+postfix_smtpd_tls_cert_file: prd-smtp.crt

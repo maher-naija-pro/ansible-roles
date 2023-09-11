@@ -1,0 +1,9 @@
+---
+# handlers file for rsyslog
+- name: start docker rsyslog
+  command: docker-compose up -d
+  args:
+    chdir: /opt/rsyslog_relay
+
+- name: reload rsyslog server
+  command: docker exec rsyslog  pkill -SIGHUP rsyslog 

@@ -1,0 +1,10 @@
+---
+# defaults file for smtp
+smtp_docker_image_name: postfix
+smtp_docker_image_tag: v1.0
+postfix_smtpd_tls_key_file: smtpd.key
+postfix_smtpd_tls_cert_file: smtpd.crt
+postfix_myhostname: "outscale.com"
+postfix_relayhost: "smtp-relay.gmail.com"
+postfix_port: "587"
+postfix_mynetworks: "127.0.0.0/8 192.168.0.0/16 10.10.0.0/23 192.19.96.0/20"

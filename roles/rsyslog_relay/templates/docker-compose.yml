@@ -1,0 +1,25 @@
+version: '3.7'
+services:
+  rsyslog-relay:
+    image: rsyslog:it-server-centos7
+    privileged: true
+    user: root
+    ports:
+      - 20515:20515
+      - 20514:20514
+      - 9092:9092
+    container_name: rsyslog
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /tmp/test:/tmp/test
+      - /dev:/dev
+      - /data/log/:/var/log
+      - /opt/rsyslog_relay/certs:/etc/pki
+      - /opt/rsyslog_relay/rsyslog.conf:/etc/rsyslog.conf
+    networks:
+      - rsyslog_network
+    restart: always
+networks:
+  rsyslog_network:
+    name: rsyslog
+

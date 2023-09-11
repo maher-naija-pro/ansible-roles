@@ -1,0 +1,9 @@
+---
+# handlers file for nginx
+- name: start docker nginx
+  command: docker-compose up -d
+  args:
+    chdir: /opt/nginx
+
+- name: reload nginx server
+  command: docker exec nginx_ext nginx -s reload

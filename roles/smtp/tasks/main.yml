@@ -1,0 +1,78 @@
+- name: Create a network
+  docker_network:
+    name: smtp
+
+- name: Create directory docker compose
+  file:
+    path: /opt/smtp
+    state: directory
+
+- name: Create data directory
+  file:
+    path: /data
+    state: directory
+
+- name: copy docker file
+  template:
+    src: Dockerfile
+    dest: "/opt/smtp/"
+    owner: outscale
+    group: outscale
+    mode: 0640
+    backup: yes
+  register: dockerfile
+
+- name: copy postfix config files
+  template:
+    src: "{{ item }}"
+    dest: "/opt/smtp/"
+    owner: outscale
+    group: outscale
+    mode: 0640
+    backup: yes
+  register: postfix_config
+  with_fileglob:
+    - "../templates/postfix_config/*"
+
+- name: build container image
+  docker_image:
+    name: "{{ smtp_docker_image_name  }}"
+    build:
+      path: /opt/smtp/
+    source: build
+    tag: "{{ smtp_docker_image_tag  }}"
+    state: present
+    force_source: "{{ 'yes' if (dockerfile.changed or postfix_config.changed)  else 'no' }}"
+  notify: start docker smtp
+
+- name: copy docker compose
+  template:
+    src: docker-compose.yml
+    dest: "/opt/smtp"
+    owner: outscale
+    group: outscale
+    mode: 0640
+    backup: yes
+
+  notify: start docker smtp
+
+- name: Check container stauts
+  docker_container_info:
+    name: smtp
+  register: result
+
+- name: Start the container if it does not exist or stopped
+  debug:
+    msg: "The container {{ 'exists' if result.exists else 'does not exist' }}"
+  notify: start docker smtp
+  changed_when: true
+  when: not result.exists
+
+- name: Start the container if it is stopped
+  debug:
+    msg: "The container status is {{ result.container['State']['Status'] }}"
+  when: ((result.exists) and (result.container['State']['Status'] != "running"))
+  changed_when: true
+  notify: start docker smtp
+
+

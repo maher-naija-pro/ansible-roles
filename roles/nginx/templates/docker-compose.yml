@@ -1,0 +1,17 @@
+version: '3.7'
+services:
+ bind:
+  image: nginx:1.21.1
+  container_name: nginx
+  volumes:
+    - /opt/nginx/conf.d:/etc/nginx/conf.d/
+  ports:
+    - 8080:8080
+    - 443:443
+  restart: always
+  networks:
+   - nginx_network
+networks:
+  nginx_network:
+    name: nginx
+

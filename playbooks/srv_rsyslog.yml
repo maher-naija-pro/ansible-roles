@@ -1,0 +1,22 @@
+---
+- hosts: "*-PPRD-*rsyslog*"
+  become: yes
+  become_user: root
+  roles:
+    - role: ../roles/base      
+    - role: ../roles/docker
+    - role: ../roles/dns_client
+    - role: ../roles/rsyslog_relay
+    - role: ../roles/manage_disks
+    - role: ../roles/zabbix-agent
+
+- hosts: "*-PRD-*rsyslog*"
+  become: yes
+  become_user: root
+  roles:
+    - role: ../roles/base
+    - role: ../roles/docker
+    - role: ../roles/dns_client
+    - role: ../roles/rsyslog_relay
+    - role: ../roles/manage_disks
+    - role: ../roles/zabbix-agent

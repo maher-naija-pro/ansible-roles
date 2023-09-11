@@ -1,0 +1,6 @@
+---
+# defaults file for dns
+VPC_IT_2_servers: "{{ groups['all'] }}"
+VPC_IT_2_dns: "{{ groups['all']| select('match', '.*dns') | list }}"
+dns_docker_image_name: bind
+dns_docker_image_tag: v1.0

@@ -1,0 +1,63 @@
+- name: Add Admin group
+  group:
+    gid: "{{ admin_gid | default(omit) }}"
+    name: "{{ admin_groupname | default('admin') }}"
+
+- name: Add admin group to sudoers
+  lineinfile:
+    dest: /etc/sudoers
+    line: "%{{ admin_groupname | default('admin') }} ALL=(ALL) NOPASSWD:ALL"
+
+- name: Add users
+  user:
+    name: "{{ item.username  }}"
+    uid: "{{ item.uid | default(omit) }}"
+    comment: "{{ item.comment | default(omit) }}"
+    group: "{{'admin' if ( ( (item.admin_prd| default ('no') == 'yes') and ('-prd' in inventory_hostname|lower) ) or ( (item.admin_pprd| default ('no') == 'yes') and ('-pprd' in inventory_hostname|lower) ))  else omit }}"
+    shell: "{{ item.shell | default(omit) }}"
+    create_home: "{{ item.create_home | default(omit) }}"
+    home: "{{ item.home | default(omit) }}"
+  when:  item.deleted | default ( "no" )   == "no"
+  with_items: "{{ users }}"
+
+- name: Add autorized keys
+  authorized_key:
+    user: "{{ item.username | default(omit) }}"
+    key: "{{ item.sshkey }}"
+  when:  item.deleted | default ( "no" )   == "no"
+  with_items: "{{ users }}"
+
+- name: Revoke keys
+  authorized_key:
+    user: "{{ item.0.username | default(omit) }}"
+    key: "{{ item.1 }}"
+    state: absent
+  when:  ( (item.1 is defined ) and ( item.0.deleted | default ( "no" )   == "no" ) )
+  with_subelements:
+    - "{{ users }}"
+    -  revoke_sshkey
+    - flags:
+      skip_missing: true
+
+- name: Lock users (Lock password/ssh key authentication)
+  user:
+    name: "{{ item.username }}"
+    expires: 0
+  when: (item.deleted | default ( "no" )   == "no") and ( item.lock | default ( "no" )   == "yes")
+  with_items: "{{ users }}"
+
+- name: Unlock users (set expiry to -1)
+  user:
+    name: "{{ item.username }}"
+    expires: -1
+  when:  (item.deleted | default ( "no" )   == "no") and (item.lock | default ( "no" )   == "no")
+  with_items: "{{ users }}"
+
+- name: Delete users
+  user:
+    name: "{{ item.username }}"
+    state: absent
+    remove: "yes"
+    force: "yes"
+  when:  item.deleted | default ( "no" )   == "yes"
+  with_items: "{{ users }}"

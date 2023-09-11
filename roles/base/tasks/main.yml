@@ -1,0 +1,59 @@
+- name: Install epel release
+  yum:
+    name: epel-release
+    state: present
+
+
+- name: Install some packages...
+  yum:
+    name:
+      - bind-utils
+      - curl
+      - dmidecode
+      - fio
+      - htop
+      - iftop
+      - iotop
+      - jq
+      - lsof
+      - mlocate
+      - ncdu
+      - net-tools
+      - nmap
+      - nc
+      - nmon
+      - sysstat
+      - tcpdump
+      - telnet
+      - traceroute
+      - tree
+      - unzip
+      - vim-enhanced
+      - wget
+      - zsh
+      - bc
+      - certbot
+      - git
+      - java-latest-openjdk
+      - screen
+      - strace
+      - nano
+      - tmux
+      - python3-pip.noarch
+      - python3-virtualenv
+      - socat
+    state: present
+        
+- name: Create symbolic link pip
+  file:
+    src: "/usr/bin/pip3"
+    dest: "/usr/bin/pip"
+    state: link
+
+- name: Create symbolic link python
+  file:
+    src: "/usr/bin/python3"
+    dest: "/usr/bin/python"
+    state: link
+
+
